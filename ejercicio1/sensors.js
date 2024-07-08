@@ -1,4 +1,27 @@
-class Sensor {}
+class Sensor {
+    constructor(id, name, type, value, unit, updated_at) {
+        this.id = id;
+        this.name = name;
+        this.type = this.validateType(type);
+        this.value = value;
+        this.unit = unit;
+        this.updated_at = updated_at;
+    }
+
+    validateType(type) {
+        const validTypes = ['temperature', 'humidity', 'pressure'];
+        if (validTypes.includes(type)) {
+            return type;
+        } else {
+            throw new Error(`El tipo de sensor no es valido: ${type}`);
+        }
+    }
+
+    set updateValue(newValue) {
+        this.value = newValue;
+        this.updated_at = new Date().toISOString();
+    }
+}
 
 class SensorManager {
     constructor() {
@@ -9,20 +32,24 @@ class SensorManager {
         this.sensors.push(sensor);
     }
 
+
     updateSensor(id) {
         const sensor = this.sensors.find((sensor) => sensor.id === id);
+        
         if (sensor) {
             let newValue;
             switch (sensor.type) {
                 case "temperatura": // Rango de -30 a 50 grados Celsius
                     newValue = (Math.random() * 80 - 30).toFixed(2);
                     break;
+
                 case "humedad": // Rango de 0 a 100%
                     newValue = (Math.random() * 100).toFixed(2);
                     break;
                 case "presion": // Rango de 960 a 1040 hPa (hectopascales o milibares)
                     newValue = (Math.random() * 80 + 960).toFixed(2);
                     break;
+                
                 default: // Valor por defecto si el tipo es desconocido
                     newValue = (Math.random() * 100).toFixed(2);
             }
@@ -33,9 +60,33 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {}
+    async loadSensors(url) {
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('Erro de en await en loadSensors');
+            }
+            
+            const data = await response.json();
+            this.sensors = data.map(sensorData => new Sensor(
+                sensorData.id,
+                sensorData.name,
+                sensorData.type,
+                sensorData.value,
+                sensorData.unit,
+                sensorData.updated_at
+            ));
+            this.render();
+
+        } catch (error) {
+            console.error('Falla en la carga de los sensors metodo loadSensor:', error);
+        }
+    }
 
     render() {
+        
         const container = document.getElementById("sensor-container");
         container.innerHTML = "";
         this.sensors.forEach((sensor) => {
@@ -85,6 +136,8 @@ class SensorManager {
     }
 }
 
+export {SensorManager};
 const monitor = new SensorManager();
 
 monitor.loadSensors("sensors.json");
+
