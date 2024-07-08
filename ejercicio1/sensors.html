@@ -24,6 +24,11 @@
             </div>
         </section>
 
-        <script src="sensors.js"></script>
+        <script type="module">
+            import { SensorManager } from './sensors.js';
+    
+            const sensorManager = new SensorManager();
+            sensorManager.loadSensors('./sensors.json');
+        </script>
     </body>
 </html>
