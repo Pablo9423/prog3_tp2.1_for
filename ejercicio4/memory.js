@@ -6,6 +6,11 @@ class Card {
         this.element = this.#createCardElement();
     }
 
+     
+    get nombreCard(){
+        return this.name;
+    }
+
     #createCardElement() {
         const cardElement = document.createElement("div");
         cardElement.classList.add("cell");
@@ -25,11 +30,26 @@ class Card {
     #flip() {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.add("flipped");
+        this.isFlipped = true;
     }
 
     #unflip() {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.remove("flipped");
+        this.isFlipped = false;
+    }
+
+    toggleFlip() {
+        if (this.isFlipped) {
+            this.#unflip();
+        } else {
+            this.#flip();
+        }
+    }
+
+    matches(otherCard) {
+        return this.name === otherCard.name;
+        
     }
 }
 
@@ -74,6 +94,20 @@ class Board {
             this.onCardClick(card);
         }
     }
+
+    shuffleCards() {
+        this.cards.sort(() => Math.random() - 0.5);
+    }
+
+    flipDownAllCards() {
+        this.cards.forEach(card => card.isFlipped && card.toggleFlip());
+    }
+
+    reset() {
+        this.flipDownAllCards();
+        this.shuffleCards();
+        this.render();
+    }
 }
 
 class MemoryGame {
@@ -101,6 +135,32 @@ class MemoryGame {
                 setTimeout(() => this.checkForMatch(), this.flipDuration);
             }
         }
+    }
+
+    checkForMatch() {
+        const [card1, card2] = this.flippedCards;
+        if (card1.matches(card2)) {
+            this.matchedCards.push(card1, card2);
+            if (this.matchedCards.length === this.board.cards.length) {
+                this.showVictoryMessage();
+            }
+        } else {
+            setTimeout(() => {
+                card1.toggleFlip();
+                card2.toggleFlip();
+            }, this.flipDuration);
+        }
+        this.flippedCards = [];
+    }
+
+    resetGame() {
+        this.flippedCards = [];
+        this.matchedCards = [];
+        this.board.reset();
+    }
+
+    showVictoryMessage() {
+        alert("¡Ganaste!");
     }
 }
 
